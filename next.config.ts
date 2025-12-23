@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Removed basePath for local development
-  // Add it back only when deploying to a subdirectory
+  output: 'export',
+  basePath: '/idea-validator',
   images: {
     unoptimized: true,
   },

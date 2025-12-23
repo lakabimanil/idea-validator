@@ -63,9 +63,54 @@ const CATEGORY_KEYWORDS: Record<AppCategory, KeywordGroup[]> = {
     { keywords: ['analyze', 'analysis', 'insight', 'insights'], weight: 1.5 },
     { keywords: ['image', 'images', 'text', 'voice', 'speech'], weight: 1 },
   ],
+  // New categories for onboarding (mapped to existing categories for classification)
+  'subscription-paywall': [
+    { keywords: ['subscription', 'subscribe', 'subscriber', 'membership'], weight: 2.5 },
+    { keywords: ['content', 'creator', 'creators', 'exclusive'], weight: 2 },
+    { keywords: ['paywall', 'premium', 'paid', 'monetize'], weight: 2 },
+  ],
+  'web-store': [
+    { keywords: ['store', 'shop', 'ecommerce', 'e-commerce'], weight: 3 },
+    { keywords: ['products', 'catalog', 'inventory'], weight: 2 },
+    { keywords: ['shopify', 'woocommerce'], weight: 2 },
+  ],
+  creator: [
+    { keywords: ['creator', 'creators', 'content creator'], weight: 3 },
+    { keywords: ['patreon', 'onlyfans', 'subscription'], weight: 2 },
+    { keywords: ['fans', 'supporters', 'community'], weight: 1.5 },
+  ],
+  booking: [
+    { keywords: ['booking', 'reserve', 'reservation', 'appointment'], weight: 3 },
+    { keywords: ['schedule', 'calendar', 'availability'], weight: 2 },
+    { keywords: ['restaurant', 'hotel', 'service'], weight: 1.5 },
+  ],
+  'social-feed': [
+    { keywords: ['feed', 'timeline', 'posts', 'social'], weight: 3 },
+    { keywords: ['scroll', 'like', 'comment', 'share'], weight: 2 },
+    { keywords: ['instagram', 'twitter', 'tiktok'], weight: 2 },
+  ],
+  messaging: [
+    { keywords: ['message', 'messaging', 'chat', 'dm'], weight: 3 },
+    { keywords: ['conversation', 'talk', 'communicate'], weight: 2 },
+    { keywords: ['whatsapp', 'telegram', 'signal'], weight: 2 },
+  ],
+  productivity: [
+    { keywords: ['productivity', 'organize', 'manage'], weight: 3 },
+    { keywords: ['habit', 'tracker', 'goal', 'progress'], weight: 2 },
+    { keywords: ['todo', 'task', 'checklist'], weight: 2 },
+  ],
+  game: [
+    { keywords: ['game', 'gaming', 'play', 'player'], weight: 3 },
+    { keywords: ['multiplayer', 'competition', 'leaderboard'], weight: 2 },
+    { keywords: ['casual', 'arcade', 'puzzle'], weight: 1.5 },
+  ],
+  'media-streaming': [
+    { keywords: ['streaming', 'watch', 'listen', 'media'], weight: 3 },
+    { keywords: ['video', 'music', 'podcast', 'audio'], weight: 2 },
+    { keywords: ['netflix', 'spotify', 'youtube'], weight: 2 },
+  ],
   other: [
     { keywords: ['utility', 'simple', 'basic', 'minimal'], weight: 1 },
-    { keywords: ['game', 'gaming', 'puzzle', 'entertainment'], weight: 1.5 },
     { keywords: ['health', 'fitness', 'wellness', 'meditation'], weight: 1.5 },
     { keywords: ['finance', 'fintech', 'banking', 'investment'], weight: 1.5 },
   ],
@@ -202,6 +247,15 @@ export function inferBiggestRisk(
     'subscription-content': 'Retention after month one — excitement fades fast, and canceling is one click away.',
     'live-streaming': 'Cost at scale — streaming infrastructure gets expensive quickly, and margins disappear.',
     'ai-tool': 'Accuracy expectations — users will blame you when the AI is wrong, even if you warned them.',
+    'subscription-paywall': 'Retention after month one — excitement fades fast, and canceling is one click away.',
+    'web-store': 'Trust and conversion — users are hesitant to buy from unknown brands on mobile.',
+    creator: 'Creator acquisition — you need compelling creators first, but they won\'t join without an audience.',
+    booking: 'Marketplace dynamics — you need service providers before customers, but providers won\'t list without demand.',
+    'social-feed': 'Content creation burden — if users have to create content, most won\'t. The app dies empty.',
+    messaging: 'Network effects — a messaging app is useless if your friends aren\'t on it.',
+    productivity: 'Habit formation — users download it with good intentions but never build the habit.',
+    game: 'Engagement cliff — most players drop off after day 1. Retention is brutal.',
+    'media-streaming': 'Content costs — licensing or creating quality content is expensive and time-consuming.',
     other: 'Unclear value proposition — if you can\'t explain it in one sentence, users won\'t get it.',
   };
 
@@ -263,6 +317,60 @@ export function getBuilderInsights(
       keyRisk: 'Hallucination & Cost: API bills can spike.',
       coreTechStack: ['OpenAI/Anthropic API', 'Vector Database (Pinecone/pgvector)', 'Edge Functions'],
     },
+    'subscription-paywall': {
+      technicalComplexity: 'Medium (CMS, Gating logic)',
+      estimatedDevTime: '1-2 months for MVP',
+      keyRisk: 'Content Treadmill: Producing enough value monthly.',
+      coreTechStack: ['Stripe Subscriptions', 'CDN (Video/Audio)', 'Next.js'],
+    },
+    'web-store': {
+      technicalComplexity: 'Medium (Catalog, Cart, Checkout)',
+      estimatedDevTime: '2-3 months for MVP',
+      keyRisk: 'Conversion: Mobile checkout has high drop-off.',
+      coreTechStack: ['Shopify API', 'Stripe', 'Next.js'],
+    },
+    creator: {
+      technicalComplexity: 'High (Payment splits, Content delivery)',
+      estimatedDevTime: '3-4 months for MVP',
+      keyRisk: 'Creator acquisition: Chicken-and-egg problem.',
+      coreTechStack: ['Stripe Connect', 'CDN', 'PostgreSQL'],
+    },
+    booking: {
+      technicalComplexity: 'Medium (Calendar, Availability, Notifications)',
+      estimatedDevTime: '2-3 months for MVP',
+      keyRisk: 'No-shows and cancellations hurt trust.',
+      coreTechStack: ['Calendar API', 'PostgreSQL', 'Email/SMS'],
+    },
+    'social-feed': {
+      technicalComplexity: 'High (Real-time, Content moderation)',
+      estimatedDevTime: '3-4 months for MVP',
+      keyRisk: 'Empty State: Social apps are boring without content.',
+      coreTechStack: ['Supabase Realtime', 'CDN for media', 'PostgreSQL'],
+    },
+    messaging: {
+      technicalComplexity: 'Very High (Real-time sync, E2E encryption)',
+      estimatedDevTime: '4-5 months for MVP',
+      keyRisk: 'Network effects: Useless without critical mass.',
+      coreTechStack: ['WebSocket', 'Redis Pub/Sub', 'E2E encryption'],
+    },
+    productivity: {
+      technicalComplexity: 'Low-Medium (Data models, Reminders)',
+      estimatedDevTime: '1-2 months for MVP',
+      keyRisk: 'Habit formation: Users download but don\'t stick.',
+      coreTechStack: ['PostgreSQL', 'Push notifications', 'Next.js'],
+    },
+    game: {
+      technicalComplexity: 'Medium-High (Game logic, Physics, Multiplayer)',
+      estimatedDevTime: '3-6 months for MVP',
+      keyRisk: 'Retention: Most drop off after day 1.',
+      coreTechStack: ['Game engine', 'WebSocket (if multiplayer)', 'Leaderboard DB'],
+    },
+    'media-streaming': {
+      technicalComplexity: 'High (CDN, DRM, Adaptive streaming)',
+      estimatedDevTime: '3-4 months for MVP',
+      keyRisk: 'Content costs: Licensing or creation is expensive.',
+      coreTechStack: ['CDN', 'Video encoding', 'DRM (if needed)'],
+    },
     other: {
       technicalComplexity: 'Variable',
       estimatedDevTime: '2-3 months',
@@ -319,6 +427,15 @@ export function suggestFirstCut(
     'subscription-content': 'Multiple pricing tiers — start with one price and adjust based on data.',
     'live-streaming': 'Recording and replays — just do live first and validate demand.',
     'ai-tool': 'Multiple AI models or options — pick one and make it work well.',
+    'subscription-paywall': 'Multiple pricing tiers — start with one price and adjust based on data.',
+    'web-store': 'Advanced filters and search — simple catalog is enough to start.',
+    creator: 'Creator analytics dashboard — manual payouts work fine initially.',
+    booking: 'Complex availability rules — start with simple time slots.',
+    'social-feed': 'Algorithm and personalization — chronological feed works great for MVP.',
+    messaging: 'Voice/video calls — text messaging is plenty for MVP.',
+    productivity: 'Team collaboration features — start single-player first.',
+    game: 'Multiplayer mode — single player is easier to nail first.',
+    'media-streaming': 'Offline downloads — streaming-only keeps it simple.',
     other: 'Any feature you\'re not 100% sure users need — cut it ruthlessly.',
   };
 
