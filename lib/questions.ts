@@ -3,11 +3,208 @@ import {
   Question, 
   ThinkingQuestion, 
   DecisionQuestion, 
-  ClassificationResult
+  ClassificationResult,
+  AppTypeOption,
+  MonetizationModel
 } from '../types';
 
 // ============================================
-// HARDCODED QUESTIONS
+// APP TYPE OPTIONS (for carousel)
+// ============================================
+
+export const APP_TYPE_OPTIONS: AppTypeOption[] = [
+  {
+    id: 'subscription-paywall',
+    title: 'Subscription / Paywall',
+    description: 'Users pay monthly or yearly to unlock features',
+    exampleApps: ['Headspace', 'RIZZ', 'Calm'],
+  },
+  {
+    id: 'marketplace',
+    title: 'Marketplace',
+    description: 'Users buy and sell with each other.',
+    exampleApps: ['Airbnb', 'Depop', 'Craigslist'],
+  },
+  {
+    id: 'web-store',
+    title: 'Web Store to App',
+    description: 'Bring an existing brand or store to mobile.',
+    exampleApps: ['Shopify', 'Square', 'H&M'],
+  },
+  {
+    id: 'creator',
+    title: 'Creator App',
+    description: 'Create content and get paid by your fans',
+    exampleApps: ['Patreon', 'Ko-fi', 'Cash App'],
+  },
+  {
+    id: 'booking',
+    title: 'Booking / Ordering',
+    description: 'Schedule, reserve or place orders.',
+    exampleApps: ['DoorDash', 'Calendly', 'OpenTable'],
+  },
+  {
+    id: 'social-feed',
+    title: 'Social Feed App',
+    description: 'Scroll, post, like and comment on others\' posts.',
+    exampleApps: ['TikTok', 'Instagram', 'BeReal'],
+  },
+  {
+    id: 'live-streaming',
+    title: 'Livestream App',
+    description: 'Go live and watch others live.',
+    exampleApps: ['Twitch', 'TikTok Live', 'BeReal'],
+  },
+  {
+    id: 'messaging',
+    title: 'Messaging / Chat App',
+    description: 'One-on-one or group conversations.',
+    exampleApps: ['WhatsApp', 'Discord', 'Telegram'],
+  },
+  {
+    id: 'ai-tool',
+    title: 'AI-Powered App',
+    description: 'AI helps users do something faster or better.',
+    exampleApps: ['ChatGPT', 'Otter.ai', 'Notion AI'],
+  },
+  {
+    id: 'productivity',
+    title: 'Productivity App',
+    description: 'Track habits, goals or progress.',
+    exampleApps: ['Notion', 'Things 3', 'Forest'],
+  },
+  {
+    id: 'game',
+    title: 'Game',
+    description: 'Play for fun or competition.',
+    exampleApps: ['Candy Crush', 'Among Us', 'Wordle'],
+  },
+  {
+    id: 'media-streaming',
+    title: 'Media / Streaming App',
+    description: 'Watch or listen to content.',
+    exampleApps: ['Netflix', 'Spotify', 'YouTube'],
+  },
+];
+
+// ============================================
+// MONETIZATION OPTIONS
+// ============================================
+
+export interface MonetizationOption {
+  id: MonetizationModel;
+  title: string;
+  description: string;
+  icon: string;
+  badge?: string;
+  badgeColor?: string;
+}
+
+export const MONETIZATION_OPTIONS: MonetizationOption[] = [
+  {
+    id: 'free',
+    title: 'Free',
+    description: 'No payment, open to everyone.',
+    icon: '🌐',
+    badge: 'No Setup Needed',
+    badgeColor: 'zinc',
+  },
+  {
+    id: 'subscription',
+    title: 'Subscription',
+    description: 'Recurring payments for ongoing access',
+    icon: '🔄',
+    badge: 'Recommended',
+    badgeColor: 'emerald',
+  },
+  {
+    id: 'freemium',
+    title: 'Freemium',
+    description: 'Free tier with paid upgrades.',
+    icon: '🔓',
+    badge: 'Most Flexible',
+    badgeColor: 'blue',
+  },
+  {
+    id: 'ad-supported',
+    title: 'Ad Supported',
+    description: 'Free for users, revenue from ads.',
+    icon: '📢',
+    badge: 'Coming Soon',
+    badgeColor: 'amber',
+  },
+];
+
+// ============================================
+// NAME SUGGESTIONS GENERATOR
+// ============================================
+
+export function generateNameSuggestions(idea: string, appType: AppCategory | null): string[] {
+  // Simple name generation based on keywords
+  const words = idea.toLowerCase().split(' ');
+  const prefixes = ['Nova', 'Mono', 'App', 'Flow', 'Pulse', 'Spark', 'Loop', 'Beam', 'Flux', 'Sync'];
+  const suffixes = ['ify', 'ly', 'io', 'hub', 'lab', 'box', 'space', 'base', 'nest', 'zone'];
+  
+  const suggestions: string[] = [];
+  
+  // Generate 4 unique suggestions
+  const usedPrefixes = new Set<number>();
+  while (suggestions.length < 4 && usedPrefixes.size < prefixes.length) {
+    const prefixIdx = Math.floor(Math.random() * prefixes.length);
+    if (usedPrefixes.has(prefixIdx)) continue;
+    usedPrefixes.add(prefixIdx);
+    
+    const prefix = prefixes[prefixIdx];
+    const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+    
+    // Different naming patterns
+    const patterns = [
+      `${prefix}${suffix}`,
+      `${prefix}Forge`,
+      `${prefix}Spark`,
+      `${prefix}Sculpt`,
+    ];
+    
+    suggestions.push(patterns[suggestions.length % patterns.length]);
+  }
+  
+  return suggestions;
+}
+
+// ============================================
+// THUMBNAIL STYLES
+// ============================================
+
+export interface ThumbnailStyle {
+  id: string;
+  bgGradient: string;
+  iconPath: string;
+  iconColor: string;
+}
+
+export const THUMBNAIL_STYLES: ThumbnailStyle[] = [
+  {
+    id: 'flame-dark',
+    bgGradient: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
+    iconPath: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+    iconColor: '#ffffff',
+  },
+  {
+    id: 'wave-red',
+    bgGradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+    iconPath: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+    iconColor: '#ffffff',
+  },
+  {
+    id: 'bolt-purple',
+    bgGradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+    iconPath: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
+    iconColor: '#ffffff',
+  },
+];
+
+// ============================================
+// HARDCODED QUESTIONS (existing)
 // ============================================
 
 const HARDCODED_QUESTIONS: Question[] = [
@@ -20,12 +217,22 @@ const HARDCODED_QUESTIONS: Question[] = [
     
     // Header
     prompt: "Big Decision — Managed Streaming vs Self-Hosted Streaming",
-    subtext: "Do you want to use a managed live-video service (like Mux), or run live streaming yourself using open technologies (like WebRTC)?\n\nThis decision affects reliability, time to launch, monthly costs, and whether you’ll need specialized engineers later.\nIt’s one of the hardest decisions to reverse once users depend on the app.",
+    subtext: "Do you want to use a managed live-video service (like Mux), or run live streaming yourself using open technologies (like WebRTC)?\n\nThis decision affects reliability, time to launch, monthly costs, and whether you'll need specialized engineers later.\nIt's one of the hardest decisions to reverse once users depend on the app.",
     
     // New Mental Model Section
     mentalModel: {
-      title: "Before you answer, here’s the mental model",
-      content: "Using a managed streaming service (like Mux) is like **renting a house**.\n• You pay monthly.\n• Most things “just work.”\n• When plumbing breaks, it’s not your job to fix the pipes.\n\nRunning live streaming yourself is like **building your own house**.\n• You might save money long-term.\n• But you’re responsible for wiring, plumbing, inspections, and repairs.\n• If something breaks at 2am, it’s your problem.\n\nNeither option is “better.” They optimize for different kinds of pain: money vs responsibility."
+      title: "Before you answer, here's the mental model",
+      content: `Using a managed streaming service (like Mux) is like **renting a house**.
+• You pay monthly.
+• Most things "just work."
+• When plumbing breaks, it's not your job to fix the pipes.
+
+Running live streaming yourself is like **building your own house**.
+• You might save money long-term.
+• But you're responsible for wiring, plumbing, inspections, and repairs.
+• If something breaks at 2am, it's your problem.
+
+Neither option is "better." They optimize for different kinds of pain: money vs responsibility.`
     },
 
     options: [
@@ -94,14 +301,21 @@ const HARDCODED_QUESTIONS: Question[] = [
     category: 'universal',
     pillar: 'positioning',
     prompt: "The Switching Question",
-    subtext: "Assume a competitor already exists and works fine. Why would someone switch to your app?\n\n“Better UI” is not enough.\nIf switching requires effort, there must be a clear, painful reason.\n\nWhat I’m actually testing:\n• Do you have a real wedge?\n• Or is this just a nicer version of something that already exists?",
+    subtext: `Assume a competitor already exists and works fine. Why would someone switch to your app?
+
+"Better UI" is not enough.
+If switching requires effort, there must be a clear, painful reason.
+
+What I'm actually testing:
+• Do you have a real wedge?
+• Or is this just a nicer version of something that already exists?`,
     suggestions: [
-      "“I’m 10× better at one specific thing, not everything.”",
-      "“I’m cheaper because I cut features on purpose.”",
-      "“I’m built for one niche competitors ignore.”",
-      "“I already have distribution (audience, community, school, org).”",
-      "“I enable something competitors literally can’t do.”",
-      "“I don’t have a good answer yet.”"
+      `"I'm 10× better at one specific thing, not everything."`,
+      `"I'm cheaper because I cut features on purpose."`,
+      `"I'm built for one niche competitors ignore."`,
+      `"I already have distribution (audience, community, school, org)."`,
+      `"I enable something competitors literally can't do."`,
+      `"I don't have a good answer yet."`
     ],
   } as ThinkingQuestion
 ];

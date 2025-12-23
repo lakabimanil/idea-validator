@@ -6,6 +6,15 @@ export type AppCategory =
   | 'subscription-content'
   | 'live-streaming'
   | 'ai-tool'
+  | 'subscription-paywall'
+  | 'web-store'
+  | 'creator'
+  | 'booking'
+  | 'social-feed'
+  | 'messaging'
+  | 'productivity'
+  | 'game'
+  | 'media-streaming'
   | 'other';
 
 export const CATEGORY_LABELS: Record<AppCategory, string> = {
@@ -13,8 +22,17 @@ export const CATEGORY_LABELS: Record<AppCategory, string> = {
   'saas': 'Productivity / SaaS',
   'social': 'Social & Community',
   'subscription-content': 'Subscription Content',
-  'live-streaming': 'Live Streaming',
-  'ai-tool': 'AI-Powered Tool',
+  'live-streaming': 'Livestream App',
+  'ai-tool': 'AI-Powered App',
+  'subscription-paywall': 'Subscription / Paywall',
+  'web-store': 'Web Store to App',
+  'creator': 'Creator App',
+  'booking': 'Booking / Ordering',
+  'social-feed': 'Social Feed App',
+  'messaging': 'Messaging / Chat',
+  'productivity': 'Productivity App',
+  'game': 'Game',
+  'media-streaming': 'Media / Streaming',
   'other': 'General App',
 };
 
@@ -25,8 +43,59 @@ export const CATEGORY_ICONS: Record<AppCategory, string> = {
   'subscription-content': '📱',
   'live-streaming': '📺',
   'ai-tool': '🤖',
+  'subscription-paywall': '💳',
+  'web-store': '🏪',
+  'creator': '🎨',
+  'booking': '📅',
+  'social-feed': '📷',
+  'messaging': '💬',
+  'productivity': '✅',
+  'game': '🎮',
+  'media-streaming': '🎬',
   'other': '📱',
 };
+
+// Monetization models
+export type MonetizationModel = 'free' | 'subscription' | 'freemium' | 'ad-supported';
+
+export const MONETIZATION_LABELS: Record<MonetizationModel, string> = {
+  'free': 'Free',
+  'subscription': 'Subscription',
+  'freemium': 'Freemium',
+  'ad-supported': 'Ad Supported',
+};
+
+export const MONETIZATION_DESCRIPTIONS: Record<MonetizationModel, string> = {
+  'free': 'No payment, open to everyone.',
+  'subscription': 'Recurring payments for ongoing access',
+  'freemium': 'Free tier with paid upgrades.',
+  'ad-supported': 'Free for users, revenue from ads.',
+};
+
+// App type with example apps
+export interface AppTypeOption {
+  id: AppCategory;
+  title: string;
+  description: string;
+  exampleApps: string[];
+}
+
+// Onboarding data structure
+export interface OnboardingData {
+  idea: string;
+  appType: AppCategory | null;
+  monetization: MonetizationModel | null;
+  appName: string;
+  nameSuggestions: string[];
+  thumbnail: {
+    style: 'generated' | 'uploaded' | 'custom';
+    selectedIndex: number;
+    accentColor: string;
+    bgColor: string;
+    iconColor: string;
+    description: string;
+  };
+}
 
 // Classification types
 export interface CategoryScore {

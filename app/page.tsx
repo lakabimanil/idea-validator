@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { classifyIdea } from '../lib/classifier';
 import { buildQuestionFlow, getPillarLabel } from '../lib/questions';
 import { 
@@ -12,6 +13,7 @@ import {
   CATEGORY_LABELS,
   DecisionOption
 } from '../types';
+import PixelBackground from '../components/PixelBackground';
 
 // ============================================
 // TYPES
@@ -39,6 +41,8 @@ const PHASES = [
 // ============================================
 
 export default function Home() {
+  const router = useRouter();
+  
   // Input State
   const [idea, setIdea] = useState('');
   const [editableIdea, setEditableIdea] = useState('');
@@ -65,6 +69,9 @@ export default function Home() {
   const [isComplete, setIsComplete] = useState(false);
   const [showSkipWarning, setShowSkipWarning] = useState(false);
   const [activeDecisionQuestion, setActiveDecisionQuestion] = useState<DecisionQuestion | null>(null);
+  const [expandedPastQuestions, setExpandedPastQuestions] = useState<Set<string>>(new Set());
+  const [editingResponse, setEditingResponse] = useState<string | null>(null);
+  const [editedResponseText, setEditedResponseText] = useState('');
 
   const isValid = idea.trim().length >= 10;
   
@@ -204,7 +211,7 @@ export default function Home() {
         {/* Smart suggestions - clickable options */}
         {q.suggestions && q.suggestions.length > 0 && (
           <div className="space-y-3">
-            <p className="text-[10px] text-[#444] uppercase tracking-wider font-medium">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">
               Pick one or write your own
             </p>
             <div className="space-y-2">
@@ -212,7 +219,7 @@ export default function Home() {
                 <button
                   key={i}
                   onClick={() => handleThinkingSuggestionSelect(q.id, s)}
-                  className="w-full text-left p-3.5 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#333] hover:bg-[#0D0D0D] transition-all duration-150 group"
+                  className="w-full text-left p-3.5 rounded-lg bg-black/60 backdrop-blur-xl border border-[#222] hover:border-[#444] hover:bg-black/70 transition-all duration-150 group shadow-lg"
                 >
                   <p className="text-sm text-[#999] group-hover:text-[#CCC] leading-relaxed transition-colors">
                     {s}
@@ -256,7 +263,7 @@ export default function Home() {
         </div>
 
         {/* SECTION 2: The Question */}
-        <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-5">
+        <div className="bg-black/70 backdrop-blur-xl border border-[#222] rounded-xl p-5 shadow-2xl">
           <p className="text-[10px] text-[#FFBE5D] uppercase tracking-wider font-bold mb-2">Question</p>
           <p className="text-white text-lg font-medium leading-relaxed mb-4">
             Do you want to use a managed live-video service (like Mux), or run live streaming yourself using open technologies (like WebRTC)?
@@ -269,7 +276,7 @@ export default function Home() {
 
         {/* SECTION 3: Mental Model - After the question */}
         {q.mentalModel && (
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-5">
+          <div className="bg-black/70 backdrop-blur-xl border border-[#222] rounded-xl p-5 shadow-2xl">
             <h3 className="text-white text-sm font-semibold mb-4">
               {q.mentalModel.title}
             </h3>
@@ -293,7 +300,7 @@ export default function Home() {
                 </ul>
               </div>
             </div>
-            <p className="text-center text-[#555] text-sm mt-4">
+            <p className="text-center text-zinc-500 text-sm mt-4">
               Neither option is "better." They optimize for different kinds of pain: <span className="text-white">money vs responsibility</span>.
             </p>
           </div>
@@ -309,7 +316,7 @@ export default function Home() {
             return (
               <div
                 key={option.id}
-                className="rounded-xl border border-[#1A1A1A] bg-[#0A0A0A] hover:border-[#333] transition-all duration-300 overflow-hidden"
+                className="rounded-xl border border-[#222] bg-black/70 backdrop-blur-xl hover:border-[#444] transition-all duration-300 overflow-hidden shadow-2xl"
               >
                 {/* Card Header */}
                 <div className="p-5">
@@ -320,7 +327,7 @@ export default function Home() {
                         <h3 className="font-bold text-white text-base leading-tight">
                           {isManaged ? 'Option A: Managed streaming' : 'Option B: Self-hosted streaming'}
                         </h3>
-                        <p className="text-xs text-[#555]">{isManaged ? 'e.g. Mux, AWS IVS' : 'WebRTC / Open Source'}</p>
+                        <p className="text-xs text-zinc-500">{isManaged ? 'e.g. Mux, AWS IVS' : 'WebRTC / Open Source'}</p>
                       </div>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap ${
@@ -367,7 +374,7 @@ export default function Home() {
 
                   {/* Why Users Care */}
                   <div className="mb-4 p-3 rounded-lg bg-[#111] border border-[#1A1A1A]">
-                    <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-1">Why users care</p>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-1">Why users care</p>
                     <p className="text-sm text-[#AAA] leading-relaxed">{option.whyUsersCare}</p>
                   </div>
 
@@ -395,13 +402,13 @@ export default function Home() {
                   <div className="px-5 pb-5 pt-3 border-t border-[#1A1A1A] space-y-4 animate-fade-in">
                     {/* Business Impact */}
                     <div>
-                      <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-1">Business Impact</p>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-1">Business Impact</p>
                       <p className="text-sm text-[#AAA] leading-relaxed">{option.businessImpact}</p>
                     </div>
 
                     {/* Full Cost Breakdown */}
                     <div className="p-3 rounded-lg bg-[#111] border border-[#1A1A1A]">
-                      <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-2">Full Cost Breakdown</p>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Full Cost Breakdown</p>
                       <div className="text-xs text-[#888] leading-relaxed whitespace-pre-line">
                         {option.costDetail.split('\n').map((line, i) => {
                           const parts = line.split(/(\*\*.*?\*\*)/g);
@@ -421,14 +428,14 @@ export default function Home() {
 
                     {/* Who Deals With Pain */}
                     <div>
-                      <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-1">Who deals with the pain</p>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-1">Who deals with the pain</p>
                       <p className="text-sm text-[#AAA] leading-relaxed whitespace-pre-line">{option.whoDealsWithPain}</p>
                     </div>
 
                     {/* Upsides */}
                     {option.upsides && option.upsides.length > 0 && (
                       <div>
-                        <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-2">Upside</p>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Upside</p>
                         <ul className="space-y-1.5">
                           {option.upsides.map((item, i) => (
                             <li key={i} className="text-sm text-[#AAA] flex items-start gap-2">
@@ -443,7 +450,7 @@ export default function Home() {
                     {/* Tradeoffs */}
                     {option.tradeoffs && option.tradeoffs.length > 0 && (
                       <div>
-                        <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-2">Tradeoffs</p>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Tradeoffs</p>
                         <ul className="space-y-1.5">
                           {option.tradeoffs.map((item, i) => (
                             <li key={i} className="text-sm text-[#AAA] flex items-start gap-2">
@@ -475,7 +482,7 @@ export default function Home() {
 
         {/* SECTION 6: Reality Check */}
         {q.realityCheck && (
-          <div className="bg-[#0A0A0A] border border-[#FFBE5D]/20 rounded-xl p-4">
+          <div className="bg-black/70 backdrop-blur-xl border border-[#FFBE5D]/30 rounded-xl p-4 shadow-2xl">
             <div className="flex gap-3 items-start">
               <span className="text-base">⚠️</span>
               <div>
@@ -490,8 +497,8 @@ export default function Home() {
 
         {/* SECTION 7: Why This Matters */}
         {q.whyMatters && (
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-4">
-            <p className="text-[10px] text-[#444] uppercase tracking-wider font-semibold mb-2">Why this question matters</p>
+          <div className="bg-black/70 backdrop-blur-xl border border-[#222] rounded-xl p-4 shadow-2xl">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Why this question matters</p>
             <p className="text-sm text-[#777] leading-relaxed whitespace-pre-line">
               {q.whyMatters}
             </p>
@@ -633,18 +640,18 @@ export default function Home() {
         {/* Decisions recap */}
         {decisionResponses.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[10px] text-[#444] uppercase tracking-wider">Key Decisions</p>
+            <p className="text-[10px] text-[#555] uppercase tracking-wider">Key Decisions</p>
             <div className="space-y-2">
               {decisionResponses.map((r, i) => {
                 const question = questionFlow.find(q => q.id === r.questionId) as DecisionQuestion;
                 const option = question?.options.find(o => o.id === r.response);
                 return (
                   <div key={i} className="flex items-start gap-3 text-sm">
-                    <span className="text-[#333]">→</span>
+                    <span className="text-zinc-600">→</span>
                     <div>
                       <span className="text-white">{r.responseText}</span>
                       {option?.cost && (
-                        <span className="text-[#555] ml-2">({option.cost})</span>
+                        <span className="text-zinc-500 ml-2">({option.cost})</span>
                       )}
                     </div>
                   </div>
@@ -657,8 +664,8 @@ export default function Home() {
         {/* Positioning insights */}
         {thinkingResponses.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[10px] text-[#444] uppercase tracking-wider">Your Positioning</p>
-            <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-3">
+            <p className="text-[10px] text-[#555] uppercase tracking-wider">Your Positioning</p>
+            <div className="bg-black/60 backdrop-blur-xl border border-[#222] rounded-lg p-3 shadow-xl">
               <p className="text-sm text-[#888] leading-relaxed line-clamp-3">
                 "{thinkingResponses[0]?.responseText}"
               </p>
@@ -690,6 +697,47 @@ export default function Home() {
   // RESET / START
   // ============================================
 
+  const handleRegenerateFromQuestion = (questionIndex: number) => {
+    // Remove all responses after this index
+    const newResponses = responses.slice(0, questionIndex);
+    setResponses(newResponses);
+    
+    // Clear messages after the question
+    const questionId = responses[questionIndex - 1]?.questionId;
+    const questionMsgIndex = messages.findIndex((msg) => {
+      // Find the message index where this question appeared
+      return msg.role === 'ai';
+    });
+    
+    // Clear active decision question
+    setActiveDecisionQuestion(null);
+    
+    // Reset state
+    setCurrentIndex(questionIndex);
+    setIsComplete(false);
+    setEditingResponse(null);
+    setEditedResponseText('');
+    
+    // Present the question at this index
+    setTimeout(() => {
+      if (questionFlow[questionIndex]) {
+        presentQuestion(questionFlow[questionIndex]);
+      }
+    }, 300);
+  };
+
+  const handleEditResponse = (responseId: string, newText: string) => {
+    // Update the response
+    setResponses(prev => prev.map(r => 
+      r.questionId === responseId 
+        ? { ...r, response: newText, responseText: newText }
+        : r
+    ));
+    
+    setEditingResponse(null);
+    setEditedResponseText('');
+  };
+
   const handleReset = () => {
     setHasStarted(false);
     setIdea('');
@@ -704,6 +752,9 @@ export default function Home() {
     setIsComplete(false);
     setIsEditingIdea(false);
     setActiveDecisionQuestion(null);
+    setExpandedPastQuestions(new Set());
+    setEditingResponse(null);
+    setEditedResponseText('');
   };
 
   const handleRegenerate = () => {
@@ -748,27 +799,10 @@ export default function Home() {
     if (!isValid) return;
     
     const trimmedIdea = idea.trim();
-    setHasStarted(true);
-    setEditableIdea(trimmedIdea);
     
-    const result = classifyIdea(trimmedIdea);
-    setClassification(result);
-    const flow = buildQuestionFlow(result, 8);
-    console.log('🔥 QUESTION FLOW:', flow.length, 'questions');
-    console.log('🔥 FLOW TYPES:', flow.map(q => `${q.id} (${q.type})`));
-    setQuestionFlow(flow);
-
-    addAiMessage(
-      <p className="text-[#666] text-sm">
-        Looks like a <span className="text-white font-medium">{CATEGORY_LABELS[result.primaryCategory]}</span>. Let's think through this.
-      </p>
-    );
-
-    setTimeout(() => {
-      if (flow.length > 0) {
-        presentQuestion(flow[0]);
-      }
-    }, 1000);
+    // Store idea in sessionStorage and redirect to validator
+    sessionStorage.setItem('app-idea', trimmedIdea);
+    router.push('/validator');
   };
 
   const currentQ = questionFlow[currentIndex];
@@ -780,31 +814,37 @@ export default function Home() {
   // ============================================
   if (!hasStarted) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#000]">
-        <header className="px-6 py-5 flex items-center justify-between border-b border-[#111]">
+      <div className="min-h-screen flex flex-col bg-[#000] relative">
+        {/* Pixel Art Background */}
+        <PixelBackground />
+        
+        {/* Dark overlay for better contrast */}
+        <div className="fixed inset-0 bg-black/40 pointer-events-none z-[1]" />
+        
+        <header className="px-6 py-5 flex items-center justify-between border-b border-[#111]/50 bg-black/60 backdrop-blur-xl relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black font-bold text-sm">
               x1
             </div>
-            <span className="text-[#444] text-sm font-medium">.new</span>
+            <span className="text-zinc-600 text-sm font-medium">.new</span>
           </div>
         </header>
 
-        <main className="flex-1 flex items-center justify-center px-6 py-16">
+        <main className="flex-1 flex items-center justify-center px-6 py-16 relative z-10">
           <div className="w-full max-w-xl">
             <div className="mb-10 text-center">
               <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3 tracking-tight animate-slide-in-up" style={{ animationDelay: '0.1s' }}>
                 What are you building?
               </h1>
-              <p className="text-base text-[#555] max-w-md mx-auto leading-relaxed animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-base text-zinc-500 max-w-md mx-auto leading-relaxed animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
                 Describe your app. We'll help you think through the hard decisions before you write any code.
               </p>
             </div>
 
             <form onSubmit={handleStart} className="animate-fade-in-scale" style={{ animationDelay: '0.3s' }}>
               <div 
-                className={`relative rounded-2xl transition-all duration-300 bg-[#0A0A0A] border ${
-                  isFocused ? 'border-[#333] shadow-lg shadow-white/5' : 'border-[#1A1A1A]'
+                className={`relative rounded-2xl transition-all duration-300 bg-black/80 backdrop-blur-2xl border ${
+                  isFocused ? 'border-[#444] shadow-2xl shadow-white/10' : 'border-[#222]'
                 }`}
               >
                 <textarea
@@ -814,19 +854,19 @@ export default function Home() {
                   onBlur={() => setIsFocused(false)}
                   placeholder={hasStarted ? 'I want to build...' : animatedPlaceholder}
                   rows={4}
-                  className="w-full px-5 py-4 bg-transparent text-white placeholder-[#333] focus:outline-none resize-none text-base leading-relaxed transition-all duration-200"
+                  className="w-full px-5 py-4 bg-transparent text-white placeholder-zinc-600 focus:outline-none resize-none text-base leading-relaxed transition-all duration-200"
                   autoFocus
                 />
                 
                 <div className="px-5 pb-4 flex items-center justify-between">
-                  <span className="text-xs text-[#222] font-mono">
-                    {idea.length > 0 && idea.length}
+                  <span className="text-xs text-zinc-500 font-mono">
+                    {idea.length > 0 && <span className="text-zinc-400">{idea.length}</span>}
                   </span>
                   <button
                     type="submit"
                     disabled={!isValid}
                     className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed ${
-                      isValid ? 'bg-white text-black hover:bg-[#E5E5E5] hover:scale-105 active:scale-95' : 'bg-[#1A1A1A] text-[#333]'
+                      isValid ? 'bg-white text-black hover:bg-[#E5E5E5] hover:scale-105 active:scale-95' : 'bg-zinc-800/50 text-zinc-600'
                     }`}
                   >
                     Continue →
@@ -838,7 +878,7 @@ export default function Home() {
         </main>
 
         <footer className="px-6 py-4 text-center">
-          <p className="text-xs text-[#222]">A thinking tool for builders.</p>
+          <p className="text-xs text-zinc-600 font-medium tracking-wide">A thinking tool for builders.</p>
         </footer>
       </div>
     );
@@ -848,15 +888,20 @@ export default function Home() {
   // CHAT STATE
   // ============================================
   return (
-    <div className="flex flex-col h-screen bg-[#000] text-white font-sans">
+    <div className="flex flex-col h-screen bg-[#000] text-white font-sans relative">
+      {/* Pixel Art Background */}
+      <PixelBackground />
+      
+      {/* Dark overlay for better contrast */}
+      <div className="fixed inset-0 bg-black/40 pointer-events-none z-[1]" />
       
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[#111] bg-[#000] sticky top-0 z-10">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-[#111]/50 bg-black/60 backdrop-blur-xl sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black font-bold text-sm">
             x1
           </div>
-          <span className="text-sm font-medium text-[#444]">.new</span>
+          <span className="text-sm font-medium text-zinc-600">.new</span>
         </div>
         
         {/* Progress Bar - Duolingo Style */}
@@ -880,11 +925,11 @@ export default function Home() {
       </header>
 
       {/* Chat area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth relative z-10">
         <div className="max-w-2xl mx-auto space-y-6 pb-4">
           
           {/* Idea card - compact */}
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-4 animate-fade-in-up">
+          <div className="bg-black/70 backdrop-blur-xl border border-[#222] rounded-xl p-4 animate-fade-in-up shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 {isEditingIdea ? (
@@ -899,7 +944,7 @@ export default function Home() {
                   <p className="text-white text-sm leading-relaxed">{idea}</p>
                 )}
                 {classification && !isEditingIdea && (
-                  <span className="inline-block mt-2 text-[10px] font-medium text-[#444] uppercase tracking-wider">
+                  <span className="inline-block mt-2 text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
                     {CATEGORY_LABELS[classification.primaryCategory]}
                   </span>
                 )}
@@ -908,7 +953,7 @@ export default function Home() {
                 {!isEditingIdea ? (
                   <button
                     onClick={() => setIsEditingIdea(true)}
-                    className="text-xs text-[#444] hover:text-white transition-colors"
+                    className="text-xs text-zinc-500 hover:text-white transition-colors"
                   >
                     Edit
                   </button>
@@ -919,7 +964,7 @@ export default function Home() {
                         setIsEditingIdea(false);
                         setEditableIdea(idea);
                       }}
-                      className="text-xs text-[#444] hover:text-white transition-colors"
+                      className="text-xs text-zinc-500 hover:text-white transition-colors"
                     >
                       Cancel
                     </button>
@@ -938,11 +983,11 @@ export default function Home() {
 
           {/* Past Questions History - Collapsible */}
           {responses.length > 0 && (
-            <details className="group bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl overflow-hidden">
+            <details className="group bg-black/70 backdrop-blur-xl border border-[#222] rounded-xl overflow-hidden shadow-2xl" open>
               <summary className="cursor-pointer px-4 py-3 flex items-center justify-between hover:bg-[#0D0D0D] transition-colors">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-white">Past Questions</span>
-                  <span className="text-[10px] font-medium text-[#444] bg-[#1A1A1A] px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-medium text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded-full">
                     {responses.length}
                   </span>
                 </div>
@@ -950,24 +995,184 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
               </summary>
-              <div className="px-4 pb-4 pt-2 space-y-4 border-t border-[#1A1A1A]">
+              <div className="px-4 pb-4 pt-2 space-y-3 border-t border-[#1A1A1A]">
                 {responses.map((response, idx) => {
                   const question = questionFlow.find(q => q.id === response.questionId);
                   if (!question) return null;
                   
+                  const isExpanded = expandedPastQuestions.has(response.questionId);
+                  const isEditing = editingResponse === response.questionId;
+                  const isDecision = question.type === 'decision';
+                  
                   return (
-                    <div key={response.questionId} className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <span className="text-[10px] font-bold text-[#444] mt-0.5">{idx + 1}.</span>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-xs text-[#888] leading-relaxed">{question.prompt}</p>
-                          <div className="bg-[#111] border border-[#1A1A1A] rounded-lg p-2.5">
-                            <p className="text-sm text-white leading-relaxed">
-                              {response.responseText}
-                            </p>
+                    <div key={response.questionId} className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg overflow-hidden hover:border-[#222] transition-colors">
+                      {/* Question Header - Always Visible */}
+                      <button
+                        onClick={() => {
+                          setExpandedPastQuestions(prev => {
+                            const next = new Set(prev);
+                            if (isExpanded) {
+                              next.delete(response.questionId);
+                            } else {
+                              next.add(response.questionId);
+                            }
+                            return next;
+                          });
+                        }}
+                        className="w-full text-left px-3 py-3 hover:bg-[#0D0D0D] transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-[10px] font-bold text-zinc-500 mt-0.5">{idx + 1}.</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-[#888] leading-relaxed mb-1.5">{question.prompt}</p>
+                            <div className="bg-[#111] border border-[#1A1A1A] rounded-md p-2">
+                              <p className="text-sm text-white leading-relaxed line-clamp-2">
+                                {response.responseText}
+                              </p>
+                            </div>
                           </div>
+                          <svg 
+                            className={`w-4 h-4 text-[#666] transition-transform flex-shrink-0 mt-1 ${isExpanded ? 'rotate-180' : ''}`} 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                          </svg>
                         </div>
-                      </div>
+                      </button>
+
+                      {/* Expanded Details */}
+                      {isExpanded && (
+                        <div className="px-3 pb-3 space-y-4 border-t border-[#1A1A1A] pt-3 animate-fade-in">
+                          {isEditing ? (
+                            // EDITING MODE - Show response editor
+                            <div className="space-y-3">
+                              <div className="space-y-2">
+                                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Edit Your Response</p>
+                                {isDecision ? (
+                                  // For decision questions, show option selector
+                                  <div className="space-y-2">
+                                    {(question as DecisionQuestion).options.map((option) => (
+                                      <button
+                                        key={option.id}
+                                        onClick={() => setEditedResponseText(option.title)}
+                                        className={`w-full text-left p-2.5 rounded-lg border transition-all ${
+                                          editedResponseText === option.title
+                                            ? 'bg-white/10 border-white/20'
+                                            : 'bg-[#111] border-[#1A1A1A] hover:border-[#222]'
+                                        }`}
+                                      >
+                                        <p className="text-sm text-white">{option.title}</p>
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  // For thinking questions, show textarea
+                                  <textarea
+                                    value={editedResponseText}
+                                    onChange={(e) => setEditedResponseText(e.target.value)}
+                                    className="w-full bg-[#111] border border-[#222] text-white rounded-lg px-3 py-2 focus:outline-none focus:border-[#333] resize-none text-sm leading-relaxed min-h-[80px]"
+                                    autoFocus
+                                  />
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setEditingResponse(null);
+                                      setEditedResponseText('');
+                                    }}
+                                    className="text-xs text-zinc-500 hover:text-white transition-colors px-3 py-1.5"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => handleEditResponse(response.questionId, editedResponseText)}
+                                    disabled={!editedResponseText.trim()}
+                                    className="text-xs bg-white text-black px-3 py-1.5 rounded-md hover:bg-[#E5E5E5] transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-medium"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            // VIEW MODE - Show full question as originally presented
+                            <>
+                              {isDecision ? (
+                                // Decision Question - Show full UI
+                                <DecisionQuestionUI q={question as DecisionQuestion} />
+                              ) : (
+                                // Thinking Question - Show full details
+                                <div className="space-y-4">
+                                  <div className="space-y-2">
+                                    <h3 className="text-lg font-semibold text-white">{question.prompt}</h3>
+                                    {question.subtext && (
+                                      <p className="text-sm text-[#666] leading-relaxed whitespace-pre-line">
+                                        {question.subtext}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Show suggestions if available */}
+                                  {(question as ThinkingQuestion).suggestions && (question as ThinkingQuestion).suggestions!.length > 0 && (
+                                    <div className="space-y-2">
+                                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">
+                                        Suggestions
+                                      </p>
+                                      <div className="space-y-2">
+                                        {(question as ThinkingQuestion).suggestions!.map((s, i) => (
+                                          <div
+                                            key={i}
+                                            className="p-2.5 rounded-lg bg-[#111] border border-[#1A1A1A]"
+                                          >
+                                            <p className="text-sm text-[#999] leading-relaxed">
+                                              {s}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Your Response - Always shown */}
+                              <div className="space-y-2 pt-3 border-t border-[#1A1A1A]">
+                                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Your Response</p>
+                                <div className="bg-[#111] border border-[#1A1A1A] rounded-lg p-3">
+                                  <p className="text-sm text-white leading-relaxed whitespace-pre-line">
+                                    {response.responseText}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingResponse(response.questionId);
+                                    setEditedResponseText(response.responseText);
+                                  }}
+                                  className="flex-1 text-xs py-2 rounded-lg border border-[#222] text-[#888] hover:text-white hover:border-[#333] transition-all font-medium"
+                                >
+                                  ✏️ Edit Response
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRegenerateFromQuestion(idx + 1);
+                                  }}
+                                  className="flex-1 text-xs py-2 rounded-lg border border-[#222] text-[#888] hover:text-white hover:border-[#333] transition-all font-medium"
+                                >
+                                  🔄 Regenerate from here
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -978,10 +1183,10 @@ export default function Home() {
           {/* Progress counter */}
           {!isComplete && questionFlow.length > 0 && (
             <div className="flex items-center justify-between px-1">
-              <span className="text-[10px] font-medium text-[#333] uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">
                 {answeredQuestions + 1} of {totalQuestions}
               </span>
-              <span className="text-[10px] font-medium text-[#333]">
+              <span className="text-[10px] font-medium text-zinc-600">
                 {questionsRemaining} left
               </span>
             </div>
@@ -994,7 +1199,7 @@ export default function Home() {
               className={`${msg.role === 'user' ? 'flex justify-end' : ''} animate-fade-in-up`}
             >
               {msg.role === 'user' ? (
-                <div className="bg-[#0A0A0A] text-white rounded-xl rounded-br-sm px-4 py-3 border border-[#1A1A1A] max-w-[85%] text-sm leading-relaxed">
+                <div className="bg-black/70 backdrop-blur-xl text-white rounded-xl rounded-br-sm px-4 py-3 border border-[#222] max-w-[85%] text-sm leading-relaxed shadow-xl">
                   {msg.content}
                 </div>
               ) : (
@@ -1026,7 +1231,7 @@ export default function Home() {
       </div>
 
       {/* Input area - only for thinking questions */}
-      <div className="p-4 bg-gradient-to-t from-[#000] via-[#000] to-transparent pt-8">
+      <div className="p-4 bg-gradient-to-t from-black via-black/90 to-transparent pt-8 relative z-10 backdrop-blur-xl">
         <div className="max-w-2xl mx-auto">
           <form 
             onSubmit={handleTextSubmit}
@@ -1045,13 +1250,13 @@ export default function Home() {
               placeholder={isDecisionQuestion ? "Pick an option above" : "Type your answer..."}
               disabled={isInputDisabled}
               rows={1}
-              className="w-full bg-[#0A0A0A] border border-[#1A1A1A] text-white placeholder-[#333] rounded-xl pl-4 pr-20 py-4 focus:outline-none focus:border-[#333] resize-none text-sm min-h-[52px]"
+              className="w-full bg-black/70 backdrop-blur-xl border border-zinc-700 text-white placeholder-zinc-400 rounded-xl pl-4 pr-20 py-4 focus:outline-none focus:border-zinc-500 focus:shadow-2xl focus:shadow-white/5 resize-none text-sm min-h-[52px]"
             />
             
             <button
               type="submit"
               disabled={!inputValue.trim() || isInputDisabled}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-white text-black rounded-lg disabled:bg-[#1A1A1A] disabled:text-[#333] transition-all hover:bg-[#E5E5E5] text-xs font-medium"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-white text-black rounded-lg disabled:bg-zinc-600 disabled:text-zinc-300 transition-all hover:bg-zinc-200 text-xs font-medium"
             >
               Send →
             </button>
@@ -1061,8 +1266,8 @@ export default function Home() {
 
       {/* Skip Warning Modal */}
       {showSkipWarning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-6 shadow-2xl transform scale-100 animate-fade-in-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-md bg-black/90 backdrop-blur-2xl border border-[#333] rounded-2xl p-6 shadow-2xl transform scale-100 animate-fade-in-up">
             <h3 className="text-xl font-bold text-white mb-2">
               Are you sure?
             </h3>
